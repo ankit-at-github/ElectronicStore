@@ -1,0 +1,14 @@
+Validating API using bean validator.
+
+1. Add the dependency: spring-boot-starter-validation.
+2. Use annotations to perform  bean property validation.
+
+@NotBlank: one or more than one character is mandatory to have.
+@Size:
+@Min
+@Max
+@Email: To validate email
+@Pattern
+You can also create custom validator.
+
+3. Enable the validation using @Valid annotation. ---> Use where you are going to accept data in bean : Controller.
