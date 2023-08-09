@@ -6,15 +6,23 @@ import com.lcwd.electronic.store.dtos.PageableResponse;
 import com.lcwd.electronic.store.dtos.UserDto;
 import com.lcwd.electronic.store.services.FileService;
 import com.lcwd.electronic.store.services.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @RestController
@@ -27,6 +35,8 @@ public class UserController {
 
     @Value("${user.profile.image.path}")
     private String imageUploadPath;
+
+    private Logger logger = LoggerFactory.getLogger(UserController.class);
 
     //create
     @PostMapping
@@ -42,7 +52,7 @@ public class UserController {
     }
     //delete
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ApiResponseMessage> deleteUser(@PathVariable("userId") String userId){
+    public ResponseEntity<ApiResponseMessage> deleteUser(@PathVariable("userId") String userId) throws IOException {
         userService.deleteUser(userId);
         ApiResponseMessage message
                 = ApiResponseMessage.builder()
@@ -86,7 +96,6 @@ public class UserController {
             @RequestParam("userImage")MultipartFile image, @PathVariable String userId) throws IOException {
 
         String imageName = fileService.uploadImage(image, imageUploadPath);
-
         //Mapping imageName to corresponding User in Database.
         UserDto user = userService.getUserById(userId);
         user.setImageName(imageName);
@@ -103,4 +112,21 @@ public class UserController {
     }
 
     //serve user image
+    @GetMapping("/image/{userId}")
+    public void serveUserImage(@PathVariable String userId, HttpServletResponse response) throws IOException {
+
+        UserDto user = userService.getUserById(userId);
+        logger.info("User Image Name : {}", user.getImageName());
+
+        InputStream resource = fileService.getResource(imageUploadPath, user.getImageName());
+
+        //Putting Image into Response - HttpServletResponse
+
+        //Setting up content type of response - Media Type
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        //copy resource data to output stream
+        StreamUtils.copy(resource, response.getOutputStream());
+
+    }
+
 }
