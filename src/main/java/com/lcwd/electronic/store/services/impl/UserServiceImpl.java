@@ -149,6 +149,7 @@ public class UserServiceImpl implements UserService {
 //                .imageName(savedUser.getImageName()).build();
 //
 //        return userDto;
+        //Entity to DTO
         return mapper.map(savedUser, UserDto.class);
     }
 
@@ -163,6 +164,7 @@ public class UserServiceImpl implements UserService {
 //                .gender(userDto.getGender()).build();
 //
 //        return user;
+        //DTO to Entity
         return mapper.map(userDto, User.class);
     }
 }
