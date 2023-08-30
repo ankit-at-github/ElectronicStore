@@ -2,9 +2,11 @@ package com.lcwd.electronic.store.services.impl;
 
 import com.lcwd.electronic.store.dtos.PageableResponse;
 import com.lcwd.electronic.store.dtos.ProductDto;
+import com.lcwd.electronic.store.entities.Category;
 import com.lcwd.electronic.store.entities.Product;
 import com.lcwd.electronic.store.exceptions.ResourceNotFoundException;
 import com.lcwd.electronic.store.helper.Helper;
+import com.lcwd.electronic.store.repositories.CategoryRepository;
 import com.lcwd.electronic.store.repositories.ProductRepository;
 import com.lcwd.electronic.store.services.ProductService;
 import org.modelmapper.ModelMapper;
@@ -26,6 +28,8 @@ public class ProductServiceImpl implements ProductService {
     private ProductRepository productRepository;
     @Autowired
     private ModelMapper mapper;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     //Other Dependencies, if required
     @Override
@@ -94,6 +98,54 @@ public class ProductServiceImpl implements ProductService {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
         Page<Product> page = productRepository.findByTitleContaining(subTitle, pageable);
+        return Helper.getPageableResponse(page, ProductDto.class);
+    }
+
+    @Override
+    public ProductDto createWithCategory(ProductDto productDto, String categoryId) {
+        //Fetch Category first
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found with given Id !!"));
+
+        Product product = mapper.map(productDto, Product.class);
+
+        //Generating Product ID
+        String productId = UUID.randomUUID().toString();
+        product.setProductId(productId);
+
+        //Added Date
+        product.setAddedDate(new Date());
+
+        //Assigning Product a Category, set-get method is called through getter & setter
+        product.setCategory(category);
+
+        Product savedProduct = productRepository.save(product);
+        return mapper.map(savedProduct, ProductDto.class);
+    }
+
+    @Override
+    public ProductDto updateCategory(String productId, String categoryId) {
+        //Fetch Product
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product Not Found of given Id!!"));
+        //Fetch Category
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found with given Id !!"));
+        //Assigning category to a product
+        product.setCategory(category);
+        //Saving updated product
+        Product savedProduct = productRepository.save(product);
+        //Converting entity to dto
+        return mapper.map(savedProduct, ProductDto.class);
+    }
+
+    @Override
+    public PageableResponse<ProductDto> getAllOfCategory(String categoryId, int pageNumber, int pageSize, String sortBy, String sortDir) {
+        //Fetch Category
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found with given Id !!"));
+
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        //Fetching product on categoryId
+        Page<Product> page = productRepository.findByCategory(category, pageable);
         return Helper.getPageableResponse(page, ProductDto.class);
     }
 }
