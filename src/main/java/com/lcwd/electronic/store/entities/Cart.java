@@ -22,7 +22,8 @@ public class Cart {
     private User user;
 
     //Mapping Cart Items here, how many items are there in this cart
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    //if getting duplicate values remove fetch = FetchType.EAGER
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
 }
