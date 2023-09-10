@@ -1,13 +1,10 @@
 package com.lcwd.electronic.store.entities;
-
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.repository.cdi.Eager;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor

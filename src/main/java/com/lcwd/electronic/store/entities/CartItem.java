@@ -1,6 +1,5 @@
 package com.lcwd.electronic.store.entities;
 
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
