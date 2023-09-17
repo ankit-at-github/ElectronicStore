@@ -1,0 +1,2 @@
+What is the use of DTO instead of Entity?
+https://softwareengineering.stackexchange.com/questions/373284/what-is-the-use-of-dto-instead-of-entity

@@ -22,7 +22,7 @@ public class CartItem {
     private int totalPrice;
 
     //mapping with cart, this cart item belongs which Cart
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     private Cart cart;
 }
