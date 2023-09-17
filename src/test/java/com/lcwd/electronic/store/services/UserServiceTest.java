@@ -1,5 +1,6 @@
 package com.lcwd.electronic.store.services;
 
+import com.lcwd.electronic.store.dtos.PageableResponse;
 import com.lcwd.electronic.store.dtos.UserDto;
 import com.lcwd.electronic.store.entities.Role;
 import com.lcwd.electronic.store.entities.User;
@@ -10,14 +11,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.data.domain.*;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 @SpringBootTest
@@ -86,5 +91,95 @@ public class UserServiceTest {
         System.out.println(updatedUser.getName());
         Assertions.assertNotNull(userDto);
         Assertions.assertEquals(userDto.getName(), updatedUser.getName(), "Name is not validated!!");
+    }
+    @Test
+    public void deleteUserTest() throws IOException {
+        String userid="userIdabc";
+        Mockito.when(userRepository.findById("userIdabc")).thenReturn(Optional.of(user));
+        userService.deleteUser(userid);
+        //We are getting void in return, we are checking delete method is running how many times using mockito.
+        Mockito.verify(userRepository, Mockito.times(1)).delete(user);
+    }
+    @Test
+    public void getAllUsersTest(){
+        User user1 = User.builder()
+                .name("Uttam")
+                .email("durgesh@gmail.com")
+                .about("This method is for testing")
+                .gender("Male")
+                .imageName("abc.png")
+                .password("lcwdd")
+                .roles(Set.of(role))
+                .build();
+        User user2 = User.builder()
+                .name("Ankit")
+                .email("durgesh@gmail.com")
+                .about("This method is for testing")
+                .gender("Male")
+                .imageName("abc.png")
+                .password("lcwd")
+                .roles(Set.of(role))
+                .build();
+        List<User> userList = Arrays.asList(user1, user2);
+        Page<User> page = new PageImpl<>(userList);
+        Mockito.when(userRepository.findAll((Pageable) Mockito.any())).thenReturn(page);
+        PageableResponse<UserDto> allUser = userService.getAllUser(1, 2, "name", "asc");
+        //getContent -> List
+        Assertions.assertEquals(2, allUser.getContent().size());
+    }
+    @Test
+    public void getUserByIdTest(){
+        String userid = "userIdTest";
+        Mockito.when(userRepository.findById(userid)).thenReturn(Optional.of(user));
+        //Actual Call
+        UserDto userDto = userService.getUserById(userid);
+        Assertions.assertNotNull(userDto);
+        Assertions.assertEquals(user.getName(), userDto.getName(), "Name not matched!!");
+    }
+    @Test
+    public void getUserByEmailTest(){
+        String email = "abc@gmail.com";
+        Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        UserDto userDto = userService.getUserByEmail(email);
+        Assertions.assertNotNull(userDto);
+        Assertions.assertEquals(user.getEmail(), userDto.getEmail(), "Email not matched");
+    }
+    @Test
+    public void searchUserTest(){
+        User user1 = User.builder()
+                .name("Uttam Kumar")
+                .email("durgesh@gmail.com")
+                .about("This method is for testing")
+                .gender("Male")
+                .imageName("abc.png")
+                .password("lcwdd")
+                .roles(Set.of(role))
+                .build();
+        User user2 = User.builder()
+                .name("Pankaj Tiwari")
+                .email("durgesh@gmail.com")
+                .about("This method is for testing")
+                .gender("Male")
+                .imageName("abc.png")
+                .password("lcwd")
+                .roles(Set.of(role))
+                .build();
+        User user3 = User.builder()
+                .name("Ankit Kumar")
+                .email("durgesh@gmail.com")
+                .about("This method is for testing")
+                .gender("Male")
+                .imageName("abc.png")
+                .password("lcwdd")
+                .roles(Set.of(role))
+                .build();
+
+        String keywords = "kumar";
+        Mockito.when(userRepository.findByNameContaining(keywords)).thenReturn(Arrays.asList(user1, user2, user3));
+
+        //Jo method return kar raha hai
+        List<UserDto> userDtos = userService.searchUser(keywords);
+
+        Assertions.assertEquals( 3, userDtos.size(), "Size not matched");
     }
 }
